@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script defer src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
+
+    <!-- <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+  
+        gtag("config", "G-8W79QQ7PBD");
+      </script> -->
+</head>
+<body>
+
+    <div>
+      <h1>
+        Em Alta
+      </h1>
+        <select id="select-hot" onchange="changeContent(this)">
+          <option value="0">Select</option>
+        </select>
+    </div>
+    <div>
+      <h1>
+        Canais
+      </h1>
+        <select id="select-channels" onchange="changeContent(this)">
+          <option value="0">Select</option>
+        </select>
+    </div>
+    <div>
+      <h1>
+        Series
+      </h1>
+        <select id="select-series" onchange="changeContent(this)">
+          <option value="0">Select</option>
+        </select>
+    </div>
+    <hr>
+
+    <!-- <video
+    id="my-video"
+    class="video-js"
+    preload="auto"
+    controls
+    width="800"
+    height="400"
+    data-setup="{}"
+    >
+        <source src="https://tabcine.onrender.com/api/v1/proxy/135570.m3u8"
+            type="application/x-mpegURL"
+        >
+    </video> -->
+    <video
+    id="hlsVideo"
+    class="video-js-oi"
+    preload="auto"
+    controls
+    width="800"
+    height="400"
+    >
+    </video>
+
+    <script> // 135471
+        let channelId = 135471
+        const selectHot = document.getElementById("select-hot")
+        const selectChannels = document.getElementById("select-channels")
+        const selectSeries = document.getElementById("select-series")
+        const hlsVideo = document.getElementById("hlsVideo");
+        let feed;
+        let videoUrl = `https://tabcine.onrender.com/api/v1/proxy/${channelId}.m3u8`;
+        let hls;        
+        
+        fetch("https://tabcine.onrender.com/api/v1/proxy/feed")
+            .then(res => res.json())
+            .then(data => {
+                feed = data;
+                renderHotContent()
+                renderChannelsContent()
+                renderSeriesContent()
+                // console.log(feed)
+            })
+
+        function changeContent ({options, selectedIndex}) {
+          // console.log("-----==========id")
+          // console.log(id)
+          channelId = options[selectedIndex].value;;
+          videoUrl = `https://tabcine.onrender.com/api/v1/proxy/${channelId}.m3u8`;
+          showModal();
+        }
+
+        function renderHotContent() {
+            if(feed.header) {
+              feed.header.source.forEach(element => {
+                const option = document.createElement("option", "value");
+                const text = document.createElement("p");
+                text.textContent = element.name;
+                option.setAttribute("value", element.id);
+                option.appendChild(text);
+                selectHot.appendChild(option);
+              });
+              // (content => {
+              //       return `
+              //       <option value="0">Select</option>
+              //       <h2 onclick="changeContent(${content.id})">${content.name}</h2>`
+              //   })
+            }
+        }
+        function renderChannelsContent() {
+            if(feed.channels) {
+              Object.keys(feed.channels).forEach(function(key, index) {
+                feed.channels[key].source.forEach(element => {
+                  const option = document.createElement("option", "value");
+                  const text = document.createElement("p");
+                  text.textContent = element.name;
+                  option.setAttribute("value", element.id);
+                  option.appendChild(text);
+                  selectChannels.appendChild(option);
+                });
+            });
+              // (content => {
+              //       return `
+              //       <option value="0">Select</option>
+              //       <h2 onclick="changeContent(${content.id})">${content.name}</h2>`
+              //   })
+            }
+        }
+        function renderSeriesContent() {
+            if(feed.series) {
+              Object.keys(feed.series).forEach(function(key, index) {
+                feed.series[key].source.forEach(element => {
+                  const option = document.createElement("option", "value");
+                  const text = document.createElement("p");
+                  text.textContent = element.name;
+                  option.setAttribute("value", element.id);
+                  option.appendChild(text);
+                  selectSeries.appendChild(option);
+                });
+              })
+              // (content => {
+              //       return `
+              //       <option value="0">Select</option>
+              //       <h2 onclick="changeContent(${content.id})">${content.name}</h2>`
+              //   })
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+function showModal() {
+//   modal.style.display = "block";
+
+  // gtag('event', 'modal', {
+  //         'event_category': 'open',
+  //         'event_action': 'watch',
+  //         'event_label': window.location.pathname
+  //     });
+
+  if (Hls.isSupported()) {
+    hls = new Hls();
+    hls.loadSource(videoUrl);
+    hls.attachMedia(hlsVideo);
+    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+      hlsVideo.play();
+    });
+
+    hls.on(Hls.Events.ERROR, function (event, data) {
+      if (data.fatal) {
+        hideModal();
+        alert("O conteúdo informado não existe.");
+      }
+    });
+  } else if (hlsVideo.canPlayType("application/vnd.apple.mpegurl")) {
+    hlsVideo.src = videoUrl;
+    hlsVideo.addEventListener("loadedmetadata", function () {
+      hlsVideo.play();
+    });
+
+    hls.on(Hls.Events.ERROR, function (event, data) {
+      if (data.fatal) {
+        hideModal();
+        alert("O conteúdo informado não existe.");
+      }
+    });
+  }
+}
+
+showModal()
+
+selectHot.addEventListener("change", changeContent);
+
+    </script>
+</body>
+</html>
